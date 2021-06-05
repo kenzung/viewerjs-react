@@ -1,15 +1,15 @@
 {
   "version": "1.0.0",
-  "name": "viewjs-react",
+  "name": "viewerjs-react-next",
   "files": [
     "dist"
   ],
-  "main": "./dist/viewjs-react.es.js",
-  "module": "./dist/viewjs-react.es.js",
+  "main": "./dist/viewerjs-react-next.es.js",
+  "module": "./dist/viewerjs-react-next.es.js",
   "exports": {
     ".": {
-      "import": "./dist/viewjs-react.es.js",
-      "require": "./dist/viewjs-react.umd.js"
+      "import": "./dist/viewerjs-react-next.es.js",
+      "require": "./dist/viewerjs-react-next.umd.js"
     }
   },
   "scripts": {
