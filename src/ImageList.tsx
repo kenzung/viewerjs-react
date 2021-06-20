@@ -2,7 +2,10 @@ import React, {
   CSSProperties, forwardRef, useImperativeHandle, useMemo, useRef,
 } from 'react';
 import { useMountedState } from 'react-use';
-import { ImageListProps } from './types';
+import { Interface } from 'readline';
+import { CommonViewerJsProps } from './types';
+
+type ImageListProps = CommonViewerJsProps;
 
 const ImageList = forwardRef<{
   getInnerRef:() => HTMLUListElement | null, getMountState:() => boolean
@@ -11,10 +14,11 @@ const ImageList = forwardRef<{
       imageUrls,
       imageListClassname,
       showImageList,
+      style,
     }, refOut) => {
       const ref = useRef<HTMLUListElement>(null);
 
-      const style: CSSProperties = useMemo(() => {
+      const disableShowStyle = useMemo<CSSProperties>(() => {
         if (!showImageList) {
           return {
             height: '0px',
@@ -32,7 +36,7 @@ const ImageList = forwardRef<{
       }));
 
       return (
-        <ul ref={ref} className={imageListClassname} style={style}>
+        <ul ref={ref} className={imageListClassname} style={{ ...style, ...disableShowStyle }}>
           {imageUrls && imageUrls.length > 0 && imageUrls.map((imageUrl) => <li><img src={imageUrl} key={imageUrl} alt="" /></li>)}
         </ul>
       );

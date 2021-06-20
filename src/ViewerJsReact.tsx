@@ -5,10 +5,11 @@ import ReactDOM from 'react-dom';
 import Viewerjs from 'viewerjs';
 import { useUnmount } from 'react-use';
 import ImageList from './ImageList';
-import { ImageListProps } from './types';
+import { CommonViewerJsProps } from './types';
 import { eventEmitter, eventType } from './event';
 
-interface ViewerJsReactProps extends ImageListProps{
+interface ViewerJsReactProps extends CommonViewerJsProps{
+  customImageListComponent?: ReactElement;
   customToolbar?: ReactElement;
   viewerjsOptions?: Viewer.Options;
   onInit?: () => void;
@@ -20,6 +21,7 @@ interface ViewerJsReactProps extends ImageListProps{
 export const ViewerJsReact = forwardRef<
 { getViewer:() => Viewerjs | undefined }, ViewerJsReactProps
 >(({
+    customImageListComponent,
     customToolbar,
     imageUrls = [],
     showImageList,
