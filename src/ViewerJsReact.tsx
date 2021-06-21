@@ -15,6 +15,8 @@ interface ViewerJsReactProps extends CommonViewerJsProps{
   onReady?: () => void;
   onShown?: () => void;
   onViewed?: () => void;
+  onBeforeClose?: () => void;
+  onAfterClose?: () => void;
 }
 
 export const ViewerJsReact = forwardRef<
@@ -30,8 +32,12 @@ export const ViewerJsReact = forwardRef<
     onReady,
     onShown,
     onViewed,
+    onBeforeClose,
+    onAfterClose,
   }, ref) => {
     const viewer = useRef<Viewerjs>();
+
+    const currentImageDetail = useRef();
 
     const imageListRef = useRef<{
       getInnerRef:() => HTMLUListElement | null, getMountState:() => boolean
@@ -44,6 +50,21 @@ export const ViewerJsReact = forwardRef<
       if (imageListRef.current.getMountState() && flag) {
         const innerRef = imageListRef.current.getInnerRef();
         if (innerRef) {
+          if (onBeforeClose) {
+            innerRef.addEventListener('hide', () => {
+              onBeforeClose();
+            });
+          }
+          if (onAfterClose) {
+            innerRef.addEventListener('hidden', () => {
+              onAfterClose();
+            });
+          }
+          innerRef.addEventListener('view', (event: any) => {
+            if (event && event.detail) {
+              currentImageDetail.current = event.detail;
+            }
+          });
           viewer.current = new Viewerjs(innerRef, {
             toolbar: !customToolbar,
             ...viewerjsOptions,
@@ -75,7 +96,17 @@ export const ViewerJsReact = forwardRef<
           renderCustomToolbar.current = false;
         }
       };
-    }, [customToolbar, imageUrls, onInit, onReady, onShown, onViewed, viewerjsOptions]);
+    }, [
+      customToolbar,
+      imageUrls,
+      onAfterClose,
+      onBeforeClose,
+      onInit,
+      onReady,
+      onShown,
+      onViewed,
+      viewerjsOptions,
+    ]);
 
     useEffect(() => {
       eventEmitter.addListener(eventType.ready, () => {
@@ -92,6 +123,7 @@ export const ViewerJsReact = forwardRef<
 
     useImperativeHandle(ref, () => ({
       getViewer: () => viewer.current,
+      getCurrentImageDetail: () => currentImageDetail.current,
     }));
 
     useUnmount(() => {
