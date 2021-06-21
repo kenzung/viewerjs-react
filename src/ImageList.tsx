@@ -17,6 +17,7 @@ const ImageList = forwardRef<{
       showImageList,
       style,
       customImageListComponent,
+      title,
     }, refOut) => {
       const ref = useRef<HTMLUListElement>(null);
 
@@ -41,7 +42,20 @@ const ImageList = forwardRef<{
         React.cloneElement(customImageListComponent, { ref })
       ) : (
         <ul ref={ref} className={imageListClassname} style={{ ...style, ...disableShowStyle }}>
-          {imageUrls && imageUrls.length > 0 && imageUrls.map((imageUrl) => <li><img src={imageUrl} key={imageUrl} alt="" /></li>)}
+          {imageUrls && imageUrls.length > 0 && imageUrls.map((imageUrl, index) => {
+            let alt = '';
+            if (Array.isArray(title)) {
+              try {
+                alt = title[index];
+              } catch (error) {
+                // get title error
+                console.warn('title array size is not match image array size');
+              }
+            } else if (typeof title === 'string') {
+              alt = title;
+            }
+            return (<li><img src={imageUrl} key={imageUrl} alt={alt} /></li>);
+          })}
         </ul>
       );
     });
