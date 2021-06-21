@@ -2,10 +2,11 @@ import React, {
   CSSProperties, forwardRef, useImperativeHandle, useMemo, useRef,
 } from 'react';
 import { useMountedState } from 'react-use';
-import { Interface } from 'readline';
 import { CommonViewerJsProps } from './types';
 
-type ImageListProps = CommonViewerJsProps;
+interface ImageListProps extends CommonViewerJsProps {
+  style?: CSSProperties;
+}
 
 const ImageList = forwardRef<{
   getInnerRef:() => HTMLUListElement | null, getMountState:() => boolean
@@ -15,6 +16,7 @@ const ImageList = forwardRef<{
       imageListClassname,
       showImageList,
       style,
+      customImageListComponent,
     }, refOut) => {
       const ref = useRef<HTMLUListElement>(null);
 
@@ -35,7 +37,9 @@ const ImageList = forwardRef<{
         getInnerRef: () => ref.current,
       }));
 
-      return (
+      return customImageListComponent ? (
+        React.cloneElement(customImageListComponent, { ref })
+      ) : (
         <ul ref={ref} className={imageListClassname} style={{ ...style, ...disableShowStyle }}>
           {imageUrls && imageUrls.length > 0 && imageUrls.map((imageUrl) => <li><img src={imageUrl} key={imageUrl} alt="" /></li>)}
         </ul>

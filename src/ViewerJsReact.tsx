@@ -9,7 +9,6 @@ import { CommonViewerJsProps } from './types';
 import { eventEmitter, eventType } from './event';
 
 interface ViewerJsReactProps extends CommonViewerJsProps{
-  customImageListComponent?: ReactElement;
   customToolbar?: ReactElement;
   viewerjsOptions?: Viewer.Options;
   onInit?: () => void;
@@ -73,6 +72,7 @@ export const ViewerJsReact = forwardRef<
       return () => {
         if (viewer.current) {
           viewer.current.destroy();
+          renderCustomToolbar.current = false;
         }
       };
     }, [customToolbar, imageUrls, onInit, onReady, onShown, onViewed, viewerjsOptions]);
@@ -107,6 +107,7 @@ export const ViewerJsReact = forwardRef<
         imageUrls={imageUrls}
         showImageList={!!showImageList}
         imageListClassname={imageListClassname}
+        customImageListComponent={customImageListComponent}
       />
     );
   });
