@@ -12,10 +12,10 @@
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
     "declaration": true,
     "jsx": "react",
-    "outDir": "dist"
+    "outDir": "dist-ts",
+    "baseUrl": "./src"
   },
-  "include": ["./src", "./vite.config.ts"]
+  "include": ["./src"]
 }
