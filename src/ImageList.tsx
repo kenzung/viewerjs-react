@@ -1,14 +1,12 @@
-import React, {
-  CSSProperties, forwardRef, useImperativeHandle, useMemo, useRef,
-} from 'react';
+import * as React from 'react';
 import { useMountedState } from 'react-use';
 import { CommonViewerJsProps } from './types';
 
 interface ImageListProps extends CommonViewerJsProps {
-  style?: CSSProperties;
+  style?: React.CSSProperties;
 }
 
-const ImageList = forwardRef<{
+const ImageList = React.forwardRef<{
   getInnerRef:() => HTMLUListElement | null, getMountState:() => boolean
 }, ImageListProps>(
     ({
@@ -19,9 +17,9 @@ const ImageList = forwardRef<{
       customImageListComponent,
       title,
     }, refOut) => {
-      const ref = useRef<HTMLUListElement>(null);
+      const ref = React.useRef<HTMLUListElement>(null);
 
-      const disableShowStyle = useMemo<CSSProperties>(() => {
+      const disableShowStyle = React.useMemo<React.CSSProperties>(() => {
         if (!showImageList) {
           return {
             height: '0px',
@@ -33,7 +31,7 @@ const ImageList = forwardRef<{
 
       const mountState = useMountedState();
 
-      useImperativeHandle(refOut, () => ({
+      React.useImperativeHandle(refOut, () => ({
         getMountState: () => mountState(),
         getInnerRef: () => ref.current,
       }));

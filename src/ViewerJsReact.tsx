@@ -1,6 +1,4 @@
-import React, {
-  forwardRef, ReactElement, useEffect, useImperativeHandle, useRef,
-} from 'react';
+import * as React from 'react';
 import ReactDOM from 'react-dom';
 import Viewerjs from 'viewerjs';
 import { useUnmount } from 'react-use';
@@ -8,8 +6,8 @@ import ImageList from './ImageList';
 import { CommonViewerJsProps } from './types';
 import { eventEmitter, eventType } from './event';
 
-interface ViewerJsReactProps extends CommonViewerJsProps{
-  customToolbar?: ReactElement;
+export interface ViewerJsReactProps extends CommonViewerJsProps{
+  customToolbar?: React.ReactElement;
   viewerjsOptions?: Viewer.Options;
   onInit?: () => void;
   onReady?: () => void;
@@ -19,12 +17,20 @@ interface ViewerJsReactProps extends CommonViewerJsProps{
   onAfterClose?: () => void;
 }
 
-export const ViewerJsReact = forwardRef<
-{ getViewer:() => Viewerjs | undefined }, ViewerJsReactProps
+interface ImageDetail {
+  index: number;
+  image: HTMLImageElement;
+  originalImage: HTMLImageElement;
+}
+
+export const ViewerJsReact = React.forwardRef<
+{ getViewer:() => Viewerjs | undefined,
+  getCurrentImageDetail: () => ImageDetail | undefined }, ViewerJsReactProps
 >(({
     customImageListComponent,
     customToolbar,
     imageUrls = [],
+
     showImageList,
     imageListClassname,
     viewerjsOptions = {},
@@ -35,17 +41,17 @@ export const ViewerJsReact = forwardRef<
     onBeforeClose,
     onAfterClose,
   }, ref) => {
-    const viewer = useRef<Viewerjs>();
+    const viewer = React.useRef<Viewerjs>();
 
-    const currentImageDetail = useRef();
+    const currentImageDetail = React.useRef<ImageDetail>();
 
-    const imageListRef = useRef<{
+    const imageListRef = React.useRef<{
       getInnerRef:() => HTMLUListElement | null, getMountState:() => boolean
     }>({ getInnerRef: () => null, getMountState: () => false });
 
-    const renderCustomToolbar = useRef<boolean>(false);
+    const renderCustomToolbar = React.useRef<boolean>(false);
 
-    useEffect(() => {
+    React.useEffect(() => {
       const flag = imageUrls.some((url) => !!url);
       if (imageListRef.current.getMountState() && flag) {
         const innerRef = imageListRef.current.getInnerRef();
@@ -108,7 +114,7 @@ export const ViewerJsReact = forwardRef<
       viewerjsOptions,
     ]);
 
-    useEffect(() => {
+    React.useEffect(() => {
       eventEmitter.addListener(eventType.ready, () => {
         if (customToolbar && !renderCustomToolbar.current && viewer.current) {
           const viewContainer = document.querySelector('.viewer-container');
@@ -121,7 +127,7 @@ export const ViewerJsReact = forwardRef<
       });
     }, [customToolbar]);
 
-    useImperativeHandle(ref, () => ({
+    React.useImperativeHandle(ref, () => ({
       getViewer: () => viewer.current,
       getCurrentImageDetail: () => currentImageDetail.current,
     }));
