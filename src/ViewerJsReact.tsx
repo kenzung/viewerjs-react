@@ -18,140 +18,142 @@ export interface ViewerJsReactProps extends CommonViewerJsProps{
   onAfterClose?: () => void;
 }
 
-interface ImageDetail {
+export interface ImageDetail {
   index: number;
   image: HTMLImageElement;
   originalImage: HTMLImageElement;
 }
 
-export const ViewerJsReact = React.forwardRef<
-{ getViewer:() => Viewerjs | undefined,
-  getCurrentImageDetail: () => ImageDetail | undefined }, ViewerJsReactProps
->(({
-    customImageListComponent,
-    customToolbar,
-    imageUrls = [],
-    showImageList,
-    imageListClassname,
-    viewerjsOptions = {},
-    extraComponent,
-    onInit,
-    onReady,
-    onShown,
-    onViewed,
-    onBeforeClose,
-    onAfterClose,
-  }, ref) => {
-    const viewer = React.useRef<Viewerjs>();
+export interface ViewerJsReactRef {
+  getViewer:() => Viewerjs | undefined,
+  getCurrentImageDetail: () => ImageDetail | undefined
+}
 
-    const currentImageDetail = React.useRef<ImageDetail>();
+export const ViewerJsReact = React.forwardRef<ViewerJsReactRef, ViewerJsReactProps>(({
+  customImageListComponent,
+  customToolbar,
+  imageUrls = [],
+  showImageList,
+  imageListClassname,
+  viewerjsOptions = {},
+  extraComponent,
+  onInit,
+  onReady,
+  onShown,
+  onViewed,
+  onBeforeClose,
+  onAfterClose,
+}, ref) => {
+  const viewer = React.useRef<Viewerjs>();
 
-    const imageListRef = React.useRef<{
-      getInnerRef:() => HTMLUListElement | null, getMountState:() => boolean
-    }>({ getInnerRef: () => null, getMountState: () => false });
+  const currentImageDetail = React.useRef<ImageDetail>();
 
-    const renderCustomToolbar = React.useRef<boolean>(false);
+  const imageListRef = React.useRef<{
+    getInnerRef:() => HTMLUListElement | null, getMountState:() => boolean
+  }>({ getInnerRef: () => null, getMountState: () => false });
 
-    const renderExtraComponent = React.useRef<boolean>(false);
+  const renderCustomToolbar = React.useRef<boolean>(false);
 
-    React.useEffect(() => {
-      eventEmitter.addListener(eventType.ready, () => {
-        if (customToolbar && !renderCustomToolbar.current && viewer.current) {
-          const viewContainer = document.querySelector('.viewer-container');
-          if (viewContainer) {
-            const divContainer = document.createElement('div');
-            ReactDOM.render(customToolbar, viewContainer.appendChild(divContainer));
-            renderCustomToolbar.current = true;
-          }
+  const renderExtraComponent = React.useRef<boolean>(false);
+
+  React.useEffect(() => {
+    eventEmitter.addListener(eventType.ready, () => {
+      if (customToolbar && !renderCustomToolbar.current && viewer.current) {
+        const viewContainer = document.querySelector('.viewer-container');
+        if (viewContainer) {
+          const divContainer = document.createElement('div');
+          ReactDOM.render(customToolbar, viewContainer.appendChild(divContainer));
+          renderCustomToolbar.current = true;
         }
-        if (extraComponent && !renderExtraComponent.current && viewer.current) {
-          const viewContainer = document.querySelector('.viewer-container');
-          if (viewContainer) {
-            const divContainer = document.createElement('div');
-            ReactDOM.render(extraComponent, viewContainer.appendChild(divContainer));
-            renderExtraComponent.current = true;
-          }
-        }
-      });
-    }, [customToolbar, extraComponent]);
-
-    React.useImperativeHandle(ref, () => ({
-      getViewer: () => viewer.current,
-      getCurrentImageDetail: () => currentImageDetail.current,
-    }));
-
-    React.useEffect(() => {
-      const flag = imageUrls.some((url) => !!url);
-      if (viewer.current && flag) {
-        viewer.current.update();
       }
-    }, [
-      imageUrls,
-    ]);
+      if (extraComponent && !renderExtraComponent.current && viewer.current) {
+        const viewContainer = document.querySelector('.viewer-container');
+        if (viewContainer) {
+          const divContainer = document.createElement('div');
+          ReactDOM.render(extraComponent, viewContainer.appendChild(divContainer));
+          renderExtraComponent.current = true;
+        }
+      }
+    });
+  }, [customToolbar, extraComponent]);
 
-    useMount(() => {
-      if (imageListRef.current.getMountState()) {
-        const innerRef = imageListRef.current.getInnerRef();
-        if (innerRef) {
-          if (onBeforeClose) {
-            innerRef.addEventListener('hide', () => {
-              onBeforeClose();
-            });
+  React.useImperativeHandle(ref, () => ({
+    getViewer: () => viewer.current,
+    getCurrentImageDetail: () => currentImageDetail.current,
+  }));
+
+  React.useEffect(() => {
+    const flag = imageUrls.some((url) => !!url);
+    if (viewer.current && flag) {
+      viewer.current.update();
+    }
+  }, [
+    imageUrls,
+  ]);
+
+  useMount(() => {
+    if (imageListRef.current.getMountState()) {
+      const innerRef = imageListRef.current.getInnerRef();
+      if (innerRef) {
+        if (onBeforeClose) {
+          innerRef.addEventListener('hide', () => {
+            onBeforeClose();
+          });
+        }
+        if (onAfterClose) {
+          innerRef.addEventListener('hidden', () => {
+            onAfterClose();
+          });
+        }
+        innerRef.addEventListener('view', (event: any) => {
+          if (event && event.detail) {
+            currentImageDetail.current = event.detail;
           }
-          if (onAfterClose) {
-            innerRef.addEventListener('hidden', () => {
-              onAfterClose();
-            });
-          }
-          innerRef.addEventListener('view', (event: any) => {
-            if (event && event.detail) {
-              currentImageDetail.current = event.detail;
+        });
+        viewer.current = new Viewerjs(innerRef, {
+          toolbar: !customToolbar,
+          ...viewerjsOptions,
+          ready() {
+            eventEmitter.emit(eventType.ready);
+            if (onReady) {
+              onReady();
             }
-          });
-          viewer.current = new Viewerjs(innerRef, {
-            toolbar: !customToolbar,
-            ...viewerjsOptions,
-            ready() {
-              eventEmitter.emit(eventType.ready);
-              if (onReady) {
-                onReady();
-              }
-            },
-            shown() {
-              if (onShown) {
-                onShown();
-              }
-            },
-            viewed() {
-              if (onViewed) {
-                onViewed();
-              }
-            },
-          });
-          if (onInit) {
-            onInit();
-          }
+          },
+          shown() {
+            if (onShown) {
+              onShown();
+            }
+          },
+          viewed() {
+            if (onViewed) {
+              onViewed();
+            }
+          },
+        });
+        if (onInit) {
+          onInit();
         }
       }
-    });
-
-    useUnmount(() => {
-      if (viewer.current) {
-        viewer.current.destroy();
-        eventEmitter.removeAllListeners();
-      }
-    });
-
-    return (
-      <ImageList
-        ref={imageListRef}
-        imageUrls={imageUrls}
-        showImageList={!!showImageList}
-        imageListClassname={imageListClassname}
-        customImageListComponent={customImageListComponent}
-      />
-    );
+    }
   });
+
+  useUnmount(() => {
+    if (viewer.current) {
+      viewer.current.destroy();
+      eventEmitter.removeAllListeners();
+    }
+  });
+
+  return (
+    <ImageList
+      ref={imageListRef}
+      imageUrls={imageUrls}
+      showImageList={!!showImageList}
+      imageListClassname={imageListClassname}
+      customImageListComponent={customImageListComponent}
+    />
+  );
+});
 
 ViewerJsReact.displayName = 'ViewerJsReact';
 export default React.memo(ViewerJsReact);
