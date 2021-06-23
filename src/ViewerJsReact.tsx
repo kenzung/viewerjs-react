@@ -37,6 +37,7 @@ export const ViewerJsReact = React.forwardRef<ViewerJsReactRef, ViewerJsReactPro
   imageListClassname,
   viewerjsOptions = {},
   extraComponent,
+  thumbnailsUrl = imageUrls,
   onInit,
   onReady,
   onShown,
@@ -129,6 +130,9 @@ export const ViewerJsReact = React.forwardRef<ViewerJsReactRef, ViewerJsReactPro
               onViewed();
             }
           },
+          url(image: HTMLImageElement) {
+            return image.dataset.src;
+          },
         });
         if (onInit) {
           onInit();
@@ -148,6 +152,7 @@ export const ViewerJsReact = React.forwardRef<ViewerJsReactRef, ViewerJsReactPro
     <ImageList
       ref={imageListRef}
       imageUrls={imageUrls}
+      thumbnailsUrl={thumbnailsUrl}
       showImageList={!!showImageList}
       imageListClassname={imageListClassname}
       customImageListComponent={customImageListComponent}

@@ -16,6 +16,7 @@ const ImageList = React.forwardRef<{
       style,
       customImageListComponent,
       title,
+      thumbnailsUrl,
     }, refOut) => {
       const ref = React.useRef<HTMLUListElement>(null);
 
@@ -40,7 +41,7 @@ const ImageList = React.forwardRef<{
         React.cloneElement(customImageListComponent, { ref })
       ) : (
         <ul ref={ref} className={imageListClassname} style={{ ...style, ...disableShowStyle }}>
-          {imageUrls && imageUrls.length > 0 && imageUrls.map((imageUrl, index) => {
+          {thumbnailsUrl && thumbnailsUrl.length > 0 && thumbnailsUrl.map((thumbnailUrl, index) => {
             let alt = '';
             if (Array.isArray(title)) {
               try {
@@ -52,7 +53,11 @@ const ImageList = React.forwardRef<{
             } else if (typeof title === 'string') {
               alt = title;
             }
-            return (<li><img src={imageUrl} key={imageUrl} alt={alt} /></li>);
+            return (
+              <li>
+                <img src={thumbnailUrl} key={thumbnailUrl} alt={alt} data-src={imageUrls[index]} />
+              </li>
+            );
           })}
         </ul>
       );
