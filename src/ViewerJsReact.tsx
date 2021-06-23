@@ -1,7 +1,7 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
 import Viewerjs from 'viewerjs';
-import { useUnmount } from 'react-use';
+import { useUnmount, useMount } from 'react-use';
 import ImageList from './ImageList';
 import { CommonViewerJsProps } from './types';
 import { eventEmitter, eventType } from './event';
@@ -9,6 +9,7 @@ import { eventEmitter, eventType } from './event';
 export interface ViewerJsReactProps extends CommonViewerJsProps{
   customToolbar?: React.ReactElement;
   viewerjsOptions?: Viewer.Options;
+  extraComponent?: React.ReactElement;
   onInit?: () => void;
   onReady?: () => void;
   onShown?: () => void;
@@ -30,10 +31,10 @@ export const ViewerJsReact = React.forwardRef<
     customImageListComponent,
     customToolbar,
     imageUrls = [],
-
     showImageList,
     imageListClassname,
     viewerjsOptions = {},
+    extraComponent,
     onInit,
     onReady,
     onShown,
@@ -51,9 +52,45 @@ export const ViewerJsReact = React.forwardRef<
 
     const renderCustomToolbar = React.useRef<boolean>(false);
 
+    const renderExtraComponent = React.useRef<boolean>(false);
+
+    React.useEffect(() => {
+      eventEmitter.addListener(eventType.ready, () => {
+        if (customToolbar && !renderCustomToolbar.current && viewer.current) {
+          const viewContainer = document.querySelector('.viewer-container');
+          if (viewContainer) {
+            const divContainer = document.createElement('div');
+            ReactDOM.render(customToolbar, viewContainer.appendChild(divContainer));
+            renderCustomToolbar.current = true;
+          }
+        }
+        if (extraComponent && !renderExtraComponent.current && viewer.current) {
+          const viewContainer = document.querySelector('.viewer-container');
+          if (viewContainer) {
+            const divContainer = document.createElement('div');
+            ReactDOM.render(extraComponent, viewContainer.appendChild(divContainer));
+            renderExtraComponent.current = true;
+          }
+        }
+      });
+    }, [customToolbar, extraComponent]);
+
+    React.useImperativeHandle(ref, () => ({
+      getViewer: () => viewer.current,
+      getCurrentImageDetail: () => currentImageDetail.current,
+    }));
+
     React.useEffect(() => {
       const flag = imageUrls.some((url) => !!url);
-      if (imageListRef.current.getMountState() && flag) {
+      if (viewer.current && flag) {
+        viewer.current.update();
+      }
+    }, [
+      imageUrls,
+    ]);
+
+    useMount(() => {
+      if (imageListRef.current.getMountState()) {
         const innerRef = imageListRef.current.getInnerRef();
         if (innerRef) {
           if (onBeforeClose) {
@@ -96,41 +133,7 @@ export const ViewerJsReact = React.forwardRef<
           }
         }
       }
-      return () => {
-        if (viewer.current) {
-          viewer.current.destroy();
-          renderCustomToolbar.current = false;
-        }
-      };
-    }, [
-      customToolbar,
-      imageUrls,
-      onAfterClose,
-      onBeforeClose,
-      onInit,
-      onReady,
-      onShown,
-      onViewed,
-      viewerjsOptions,
-    ]);
-
-    React.useEffect(() => {
-      eventEmitter.addListener(eventType.ready, () => {
-        if (customToolbar && !renderCustomToolbar.current && viewer.current) {
-          const viewContainer = document.querySelector('.viewer-container');
-          if (viewContainer) {
-            const divContainer = document.createElement('div');
-            ReactDOM.render(customToolbar, viewContainer.appendChild(divContainer));
-            renderCustomToolbar.current = true;
-          }
-        }
-      });
-    }, [customToolbar]);
-
-    React.useImperativeHandle(ref, () => ({
-      getViewer: () => viewer.current,
-      getCurrentImageDetail: () => currentImageDetail.current,
-    }));
+    });
 
     useUnmount(() => {
       if (viewer.current) {
@@ -150,4 +153,5 @@ export const ViewerJsReact = React.forwardRef<
     );
   });
 
-export default ViewerJsReact;
+ViewerJsReact.displayName = 'ViewerJsReact';
+export default React.memo(ViewerJsReact);
