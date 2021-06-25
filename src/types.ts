@@ -7,4 +7,6 @@ export interface CommonViewerJsProps {
   imageUrls: string[];
   imageListClassname?: string;
   customImageListComponent?: React.ReactElement;
+  thumbnailLoadingType?: 'lazy' | 'eager';
+  preloadImage?: boolean;
 }

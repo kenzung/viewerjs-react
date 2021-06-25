@@ -12,11 +12,13 @@ const ImageList = React.forwardRef<{
     ({
       imageUrls,
       imageListClassname,
-      showImageList,
+      showImageList = false,
       style,
       customImageListComponent,
       title,
       thumbnailsUrl,
+      thumbnailLoadingType = 'eager',
+      preloadImage,
     }, refOut) => {
       const ref = React.useRef<HTMLUListElement>(null);
 
@@ -37,6 +39,15 @@ const ImageList = React.forwardRef<{
         getInnerRef: () => ref.current,
       }));
 
+      React.useEffect(() => {
+        if (preloadImage) {
+          imageUrls.forEach((url) => {
+            const img = document.createElement('img');
+            img.src = url;
+          });
+        }
+      }, [imageUrls, preloadImage]);
+
       return customImageListComponent ? (
         React.cloneElement(customImageListComponent, { ref })
       ) : (
@@ -55,7 +66,13 @@ const ImageList = React.forwardRef<{
             }
             return (
               <li>
-                <img src={thumbnailUrl} key={thumbnailUrl} alt={alt} data-src={imageUrls[index]} />
+                <img
+                  src={thumbnailUrl}
+                  key={thumbnailUrl}
+                  alt={alt}
+                  data-src={imageUrls[index]}
+                  loading={thumbnailLoadingType}
+                />
               </li>
             );
           })}

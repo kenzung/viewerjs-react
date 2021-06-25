@@ -9,7 +9,6 @@ import { eventEmitter, eventType } from './event';
 export interface ViewerJsReactProps extends CommonViewerJsProps{
   customToolbar?: React.ReactElement;
   viewerjsOptions?: Viewer.Options;
-  extraComponent?: React.ReactElement;
   onInit?: () => void;
   onReady?: () => void;
   onShown?: () => void;
@@ -36,7 +35,6 @@ export const ViewerJsReact = React.forwardRef<ViewerJsReactRef, ViewerJsReactPro
   showImageList,
   imageListClassname,
   viewerjsOptions = {},
-  extraComponent,
   thumbnailsUrl = imageUrls,
   onInit,
   onReady,
@@ -55,8 +53,6 @@ export const ViewerJsReact = React.forwardRef<ViewerJsReactRef, ViewerJsReactPro
 
   const renderCustomToolbar = React.useRef<boolean>(false);
 
-  const renderExtraComponent = React.useRef<boolean>(false);
-
   React.useEffect(() => {
     eventEmitter.addListener(eventType.ready, () => {
       if (customToolbar && !renderCustomToolbar.current && viewer.current) {
@@ -67,16 +63,8 @@ export const ViewerJsReact = React.forwardRef<ViewerJsReactRef, ViewerJsReactPro
           renderCustomToolbar.current = true;
         }
       }
-      if (extraComponent && !renderExtraComponent.current && viewer.current) {
-        const viewContainer = document.querySelector('.viewer-container');
-        if (viewContainer) {
-          const divContainer = document.createElement('div');
-          ReactDOM.render(extraComponent, viewContainer.appendChild(divContainer));
-          renderExtraComponent.current = true;
-        }
-      }
     });
-  }, [customToolbar, extraComponent]);
+  }, [customToolbar]);
 
   React.useImperativeHandle(ref, () => ({
     getViewer: () => viewer.current,
